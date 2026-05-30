@@ -20,8 +20,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 }
 .brand { font-weight: 700; font-size: 18px; }
 .actions { display: flex; gap: 14px; align-items: center; }
-.quota { color: var(--muted); font-size: 13px; }
-.quota b { color: var(--accent); }
+.nav-btn { background: var(--panel-2); color: var(--text); padding: 7px 14px; border-radius: 999px; font-size: 13px; }
 
 button { cursor: pointer; border: none; font-family: inherit; }
 button.primary {
