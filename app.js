@@ -20,7 +20,21 @@ const redeemInput = document.getElementById("redeemCode");
 const redeemMsg = document.getElementById("redeemMsg");
 const copyAcct = document.getElementById("copyAcct");
 
-const state = { messages: [], topic: "" };
+// 새 prompt-box 요소
+const sendBtn       = document.getElementById("sendBtn");
+const attachBtn     = document.getElementById("attachBtn");
+const fileInput     = document.getElementById("fileInput");
+const imgPreviewWrap = document.getElementById("imagePreviewWrap");
+const imgPreview    = document.getElementById("imagePreview");
+const removeImgBtn  = document.getElementById("removeImageBtn");
+const toolsBtn      = document.getElementById("toolsBtn");
+const toolsBtnLabel = document.getElementById("toolsBtnLabel");
+const toolsMenu     = document.getElementById("toolsMenu");
+const activeChip    = document.getElementById("activeToolChip");
+const activeLabel   = document.getElementById("activeToolLabel");
+const clearToolBtn  = document.getElementById("clearToolBtn");
+
+const state = { messages: [], topic: "", activeTool: null, imageData: null };
 
 function getQuota() {
   const v = localStorage.getItem("pf_quota");
@@ -49,6 +63,72 @@ function extractDraftPrompt(text) {
 function openModal() { modal.style.display = "flex"; redeemMsg.textContent = ""; }
 function hideModal() { modal.style.display = "none"; }
 
+// ── prompt-box 로직 ──
+
+// 전송 버튼 활성화
+function syncSendBtn() {
+  sendBtn.disabled = !inputEl.value.trim() && !state.imageData;
+}
+
+// 텍스트 입력 → 자동 높이 조절
+inputEl.addEventListener("input", () => {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + "px";
+  syncSendBtn();
+});
+
+// 이미지 첨부
+attachBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    state.imageData = reader.result;
+    imgPreview.src = reader.result;
+    imgPreviewWrap.style.display = "block";
+    syncSendBtn();
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = "";
+});
+
+removeImgBtn.addEventListener("click", () => {
+  state.imageData = null;
+  imgPreview.src = "";
+  imgPreviewWrap.style.display = "none";
+  syncSendBtn();
+});
+
+// 도구 드롭업
+toolsBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toolsMenu.style.display = toolsMenu.style.display === "none" ? "flex" : "none";
+  toolsMenu.style.flexDirection = "column";
+});
+document.addEventListener("click", () => { toolsMenu.style.display = "none"; });
+toolsMenu.addEventListener("click", (e) => e.stopPropagation());
+
+document.querySelectorAll(".pb-tool-item").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const tool  = btn.dataset.tool;
+    const short = btn.dataset.short;
+    state.activeTool = tool;
+    toolsMenu.style.display = "none";
+    // 도구 버튼 숨기고 칩 표시
+    toolsBtn.style.display = "none";
+    activeLabel.textContent = short;
+    activeChip.style.display = "flex";
+  });
+});
+
+clearToolBtn.addEventListener("click", () => {
+  state.activeTool = null;
+  activeChip.style.display = "none";
+  toolsBtn.style.display = "flex";
+  toolsBtnLabel.textContent = "도구";
+});
+
 startBtn.addEventListener("click", () => {
   const topic = topicEl.value.trim();
   if (!topic) { topicEl.focus(); return; }
@@ -62,10 +142,19 @@ startBtn.addEventListener("click", () => {
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = inputEl.value.trim();
-  if (!text) return;
+  if (!text && !state.imageData) return;
   if (!state.topic) { appendMsg("sys", "먼저 주제를 입력하고 '대화 시작'을 눌러 주세요."); return; }
+  // 도구 컨텍스트 붙이기
+  const toolPrefix = state.activeTool ? `[도구: ${state.activeTool}] ` : "";
+  const fullText = toolPrefix + text;
+  // 입력창 초기화
   inputEl.value = "";
-  sendToAI(text);
+  inputEl.style.height = "auto";
+  state.imageData = null;
+  imgPreviewWrap.style.display = "none";
+  imgPreview.src = "";
+  syncSendBtn();
+  sendToAI(fullText);
 });
 
 inputEl.addEventListener("keydown", (e) => {

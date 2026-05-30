@@ -23,9 +23,75 @@
           <button id="startBtn">대화 시작</button>
         </div>
         <div id="chat" class="chat"></div>
-        <form id="inputForm" class="input-row">
-          <textarea id="userInput" placeholder="메시지를 입력하세요. (Shift+Enter 줄바꿈)" rows="2"></textarea>
-          <button type="submit">보내기</button>
+        <form id="inputForm" class="prompt-box">
+          <!-- 이미지 미리보기 -->
+          <div id="imagePreviewWrap" style="display:none;" class="pb-img-wrap">
+            <button type="button" id="removeImageBtn" class="pb-img-remove" aria-label="이미지 제거">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <img id="imagePreview" src="" alt="첨부 이미지" class="pb-img-thumb" />
+          </div>
+
+          <!-- 텍스트 입력 -->
+          <textarea id="userInput" placeholder="메시지를 입력하세요..." rows="1" class="pb-textarea"></textarea>
+
+          <!-- 하단 툴바 -->
+          <div class="pb-toolbar">
+            <!-- 왼쪽: 첨부 + 도구 -->
+            <div class="pb-toolbar-left">
+              <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+              <button type="button" id="attachBtn" class="pb-icon-btn" title="이미지 첨부">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5V19"/><path d="M5 12H19"/></svg>
+              </button>
+
+              <div class="pb-tools-wrap">
+                <button type="button" id="toolsBtn" class="pb-tools-btn" title="도구">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+                  <span id="toolsBtnLabel">도구</span>
+                </button>
+                <div id="toolsMenu" class="pb-tools-menu" style="display:none;">
+                  <button type="button" class="pb-tool-item" data-tool="이미지 생성" data-short="이미지">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                    이미지 생성
+                  </button>
+                  <button type="button" class="pb-tool-item" data-tool="웹 검색" data-short="검색">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    웹 검색
+                  </button>
+                  <button type="button" class="pb-tool-item" data-tool="코드 작성" data-short="코드">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    코드 작성
+                  </button>
+                  <button type="button" class="pb-tool-item" data-tool="심층 연구" data-short="심층 연구">
+                    <svg width="14" height="14" viewBox="0 0 512 512" fill="currentColor"><path d="M452.425,202.575l-38.269-23.11c-1.266-10.321-5.924-18.596-13.711-21.947l-86.843-52.444-0.275,0.598c-3.571-7.653-9.014-13.553-16.212-16.668L166.929,10.412l-0.236,0.543v-0.016c-3.453-2.856-7.347-5.239-11.594-7.08C82.569-10.435,40.76,14.5,21.516,59.203C2.275,103.827,12.82,151.417,45.142,165.36c4.256,1.826,8.669,3.005,13.106,3.556l-0.19,0.464,146.548,40.669c7.19,3.107,15.206,3.004,23.229,0.37l-0.236,0.566L365.55,238.5c7.819,3.366,17.094,1.125,25.502-5.082l42.957,11.909c7.67,3.312,18.014-3.548,23.104-15.362C462.202,218.158,460.11,205.894,452.425,202.575z"/></svg>
+                    심층 연구
+                  </button>
+                  <button type="button" class="pb-tool-item" data-tool="오래 생각하기" data-short="생각">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7C9.24 7 7 9.24 7 12c0 1.36.54 2.6 1.43 3.5.34.35.63.77.72 1.25l.53 2.64A1.5 1.5 0 0 0 11.64 21h.72a1.5 1.5 0 0 0 1.47-1.61l.53-2.64c.09-.48.38-.9.72-1.25C16.46 14.6 17 13.36 17 12c0-2.76-2.24-5-5-5z"/><path d="M12 4V3M18 6l1-1M20 12h1M3 12H4M5 5l1 1"/><path d="M10 17h4"/></svg>
+                    오래 생각하기
+                  </button>
+                </div>
+              </div>
+
+              <!-- 선택된 도구 칩 -->
+              <div id="activeToolChip" style="display:none;" class="pb-active-tool">
+                <span id="activeToolLabel"></span>
+                <button type="button" id="clearToolBtn" class="pb-chip-clear">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 오른쪽: 마이크 + 전송 -->
+            <div class="pb-toolbar-right">
+              <button type="button" id="micBtn" class="pb-icon-btn" title="음성 입력">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+              </button>
+              <button type="submit" id="sendBtn" class="pb-send-btn" disabled title="전송">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.25L12 18.75"/><path d="M18.75 12L12 5.25L5.25 12"/></svg>
+              </button>
+            </div>
+          </div>
         </form>
       </section>
 
