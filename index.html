@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptForge — 대화로 완성하는 AI 프롬프트</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">⚡ PromptForge</div>
+      <div class="actions">
+        <a href="/verify.html" class="navlink">🔍 출처 검증</a>
+        <span id="quotaLabel" class="quota">남은 사용: <b id="quotaCount">10</b>회</span>
+        <button id="buyBtn" class="primary">충전하기</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="chat-pane">
+        <div class="topic-row">
+          <input id="topicInput" placeholder="만들고 싶은 것 한 줄 요약 (예: 학교 일정관리 웹앱)" />
+          <button id="startBtn">대화 시작</button>
+        </div>
+        <div id="chat" class="chat"></div>
+        <form id="inputForm" class="input-row">
+          <textarea id="userInput" placeholder="메시지를 입력하세요. (Shift+Enter 줄바꿈)" rows="2"></textarea>
+          <button type="submit">보내기</button>
+        </form>
+      </section>
+
+      <aside class="prompt-pane">
+        <div class="pane-head">
+          <h3>최신 초안 프롬프트</h3>
+          <button id="copyBtn">복사</button>
+        </div>
+        <pre id="finalPrompt" class="final-prompt">아직 비어 있습니다. 왼쪽에서 대화를 시작해 주세요.</pre>
+      </aside>
+    </main>
+
+    <!-- 충전 모달 -->
+    <div id="topupModal" class="modal-back" style="display:none;">
+      <div class="modal">
+        <h2>충전하기</h2>
+        <p class="muted">아래 계좌로 송금 후, 카카오톡으로 입금자명을 보내주시면 충전 코드를 발급해 드립니다.</p>
+        <div class="bank">
+          <div><span class="muted">은행</span> <b>토스뱅크</b></div>
+          <div><span class="muted">계좌</span> <b id="bankAcct">1002-2303-7735</b> <button id="copyAcct" class="mini">복사</button></div>
+          <div><span class="muted">예금주</span> <b>정선재</b></div>
+          <div><span class="muted">금액</span> <b>₩1,000 / 50회</b></div>
+        </div>
+        <hr />
+        <label class="muted" for="redeemCode">받은 충전 코드</label>
+        <div class="redeem-row">
+          <input id="redeemCode" placeholder="예: PF-AB12CD" autocomplete="off" />
+          <button id="redeemBtn">충전</button>
+        </div>
+        <p id="redeemMsg" class="muted"></p>
+        <button id="closeModal" class="modal-close">닫기</button>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
