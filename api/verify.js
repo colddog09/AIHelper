@@ -65,7 +65,7 @@ async function verifyDOI(doi) {
   try {
     const r = await withTimeout(
       fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
-        headers: { "User-Agent": "PromptForge-Verifier/1.0 (mailto:noreply@example.com)" },
+        headers: { "User-Agent": "AIHelper-Verifier/1.0 (mailto:noreply@example.com)" },
       }),
       TIMEOUT_MS
     );
@@ -151,7 +151,7 @@ async function verifyTitle(title) {
     const r = await withTimeout(
       fetch(
         `https://api.crossref.org/works?query.title=${encodeURIComponent(title)}&rows=1&select=title,author,issued,DOI`,
-        { headers: { "User-Agent": "PromptForge-Verifier/1.0" } }
+        { headers: { "User-Agent": "AIHelper-Verifier/1.0" } }
       ),
       TIMEOUT_MS
     );
@@ -189,6 +189,62 @@ const VERIFIERS = {
   title: verifyTitle,
 };
 
+async function extractCandidatesWithGemini(text, apiKey) {
+  try {
+    const prompt = `사용자가 입력한 텍스트에서 개별 논문, 도서, 학술 문서 등의 출처들을 구별하고, 검증(API 검색) 가능한 정보만 정밀하게 추출해서 JSON 배열로 반환하세요.
+주변에 번호나 저자명, 연도 등이 지저분하게 섞여 있다면 핵심 제목(title)이나 식별자(DOI, arXiv, ISBN, URL)만 깔끔하게 정제해 주세요.
+
+유형(type)은 다음 중 하나로 지정하세요:
+1. "doi": DOI 식별자 값만 추출 (예: 10.1016/j.cell.2019.01.001)
+2. "arxiv": arXiv ID 숫자만 추출 (예: 1706.03762)
+3. "isbn": ISBN 10자리 또는 13자리 숫자만 추출 (예: 9788912345678)
+4. "url": 일반 웹사이트 링크 (예: https://example.com)
+5. "title": 논문 또는 책의 제목만 깨끗하게 추출 (저자나 학회명, 연도는 제거하고 순수 제목만 넣을 것, 예: "Attention is all you need")
+
+주의: 
+- 텍스트 안에 여러 개의 논문/출처가 들어 있다면 각각 객체로 분리하세요.
+- 불필요한 서사나 설명 없이 오직 아래 형식의 JSON 배열만 반환하세요:
+[
+  {"type": "유형", "value": "추출한 값"}
+]`;
+
+    const model = "gemini-2.5-flash";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${prompt}\n\n사용자 입력 텍스트:\n${text}` }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      }),
+    });
+    if (!r.ok) throw new Error("Gemini parser failed");
+    const data = await r.json();
+    const textOut = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (textOut) {
+      const parsed = JSON.parse(textOut.trim());
+      if (Array.isArray(parsed)) {
+        return parsed.map(item => ({
+          type: item.type,
+          value: item.value,
+          raw: item.value
+        }));
+      }
+    }
+  } catch (e) {
+    console.error("Gemini parser error, falling back to regex:", e);
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -200,7 +256,15 @@ export default async function handler(req, res) {
     return;
   }
 
-  const candidates = extractCandidates(text);
+  const apiKey = process.env.GEMINI_API_KEY;
+  let candidates = null;
+  if (apiKey) {
+    candidates = await extractCandidatesWithGemini(text, apiKey);
+  }
+  if (!candidates || candidates.length === 0) {
+    candidates = extractCandidates(text);
+  }
+
   if (candidates.length === 0) {
     res.status(200).json({ candidates: [], results: [] });
     return;

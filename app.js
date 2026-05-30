@@ -1,5 +1,5 @@
-// PromptForge — 클라이언트
-// 무료 10회 후, 토스뱅크 송금 → 발급받은 코드로 충전
+// AIHelper — 클라이언트
+// 무료 10회 후, 코드로 충전
 
 const FREE_QUOTA = 10;
 
@@ -7,6 +7,7 @@ const chatEl = document.getElementById("chat");
 const formEl = document.getElementById("inputForm");
 const inputEl = document.getElementById("userInput");
 const topicEl = document.getElementById("topicInput");
+const modelSelect = document.getElementById("modelSelect");
 const startBtn = document.getElementById("startBtn");
 const finalEl = document.getElementById("finalPrompt");
 const quotaEl = document.getElementById("quotaCount");
@@ -18,7 +19,7 @@ const closeModal = document.getElementById("closeModal");
 const redeemBtn = document.getElementById("redeemBtn");
 const redeemInput = document.getElementById("redeemCode");
 const redeemMsg = document.getElementById("redeemMsg");
-const copyAcct = document.getElementById("copyAcct");
+// copyAcct 변수 제거됨
 
 // 새 prompt-box 요소
 const sendBtn       = document.getElementById("sendBtn");
@@ -184,7 +185,11 @@ async function sendToAI(userText) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic: state.topic, messages: state.messages }),
+      body: JSON.stringify({
+        topic: state.topic,
+        messages: state.messages,
+        model: modelSelect ? modelSelect.value : "gemini-2.5-pro"
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "AI 호출 실패");
@@ -213,13 +218,7 @@ buyBtn.addEventListener("click", openModal);
 closeModal.addEventListener("click", hideModal);
 modal.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
 
-copyAcct.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText("1002-2303-7735");
-    copyAcct.textContent = "복사됨";
-    setTimeout(() => (copyAcct.textContent = "복사"), 1200);
-  } catch {}
-});
+// copyAcct 이벤트 리스너 제거됨
 
 redeemBtn.addEventListener("click", async () => {
   const code = redeemInput.value.trim();

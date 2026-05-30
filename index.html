@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PromptForge — 대화로 완성하는 AI 프롬프트</title>
+    <title>AIHelper — 대화로 완성하는 AI 프롬프트</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
-      <div class="brand">⚡ PromptForge</div>
+      <div class="brand">⚡ AIHelper</div>
       <div class="actions">
         <a href="/verify.html" class="navlink">🔍 출처 검증</a>
         <span id="quotaLabel" class="quota">남은 사용: <b id="quotaCount">10</b>회</span>
@@ -20,6 +20,10 @@
       <section class="chat-pane">
         <div class="topic-row">
           <input id="topicInput" placeholder="만들고 싶은 것 한 줄 요약 (예: 학교 일정관리 웹앱)" />
+          <select id="modelSelect" class="model-select">
+            <option value="gemini-2.5-pro" selected>Gemini 2.5 Pro (우수)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (빠름)</option>
+          </select>
           <button id="startBtn">대화 시작</button>
         </div>
         <div id="chat" class="chat"></div>
@@ -107,16 +111,9 @@
     <!-- 충전 모달 -->
     <div id="topupModal" class="modal-back" style="display:none;">
       <div class="modal">
-        <h2>충전하기</h2>
-        <p class="muted">아래 계좌로 송금 후, 카카오톡으로 입금자명을 보내주시면 충전 코드를 발급해 드립니다.</p>
-        <div class="bank">
-          <div><span class="muted">은행</span> <b>토스뱅크</b></div>
-          <div><span class="muted">계좌</span> <b id="bankAcct">1002-2303-7735</b> <button id="copyAcct" class="mini">복사</button></div>
-          <div><span class="muted">예금주</span> <b>정선재</b></div>
-          <div><span class="muted">금액</span> <b>₩1,000 / 50회</b></div>
-        </div>
-        <hr />
-        <label class="muted" for="redeemCode">받은 충전 코드</label>
+        <h2>코드 충전</h2>
+        <p class="muted">발급받으신 충전 코드를 입력하시면 횟수가 충전됩니다.</p>
+        <label class="muted" for="redeemCode">충전 코드</label>
         <div class="redeem-row">
           <input id="redeemCode" placeholder="예: PF-AB12CD" autocomplete="off" />
           <button id="redeemBtn">충전</button>
